@@ -1,0 +1,43 @@
+---
+interface Props {
+  type?: "risk" | "exercise" | "mastery" | "note" | "tip" | "warning";
+  title?: string;
+}
+
+const { type = "note", title } = Astro.props;
+
+const defaultLabels: Record<NonNullable<Props["type"]>, string> = {
+  risk: "COMPLICACIONES Y RIESGOS",
+  exercise: "EJERCICIO",
+  mastery: "LO DOMINAS SI…",
+  note: "NOTA",
+  tip: "CONSEJO",
+  warning: "CUIDADO",
+};
+
+const borderClasses: Record<NonNullable<Props["type"]>, string> = {
+  risk: "border-danger",
+  exercise: "border-accent",
+  mastery: "border-accent-strong",
+  note: "border-info",
+  tip: "border-accent",
+  warning: "border-warning",
+};
+
+const label = title ?? defaultLabels[type];
+const borderClass = borderClasses[type];
+---
+
+<aside
+  class:list={[
+    "callout rounded-r-xl border-l-4 bg-surface px-5 py-4",
+    borderClass,
+  ]}
+>
+  <p class="mb-2 font-sans text-xs font-semibold tracking-wider text-muted uppercase">
+    {label}
+  </p>
+  <div class="callout-content">
+    <slot />
+  </div>
+</aside>

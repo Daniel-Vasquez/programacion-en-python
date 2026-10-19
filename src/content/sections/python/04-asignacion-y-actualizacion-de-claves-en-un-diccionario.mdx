@@ -1,0 +1,181 @@
+---
+sectionId: "P1.4"
+course: "P1"
+title: "Asignación y actualización de claves en un diccionario"
+order: 4
+minutes: 35
+summary: "Creas nuevos pares clave-valor en un diccionario vacío y acumulas cantidades sobre claves existentes con el operador de suma acumulada para resolver el reto de ventas."
+---
+
+En las secciones P1.1, P1.2 y P1.3 aprendiste a recorrer una lista de ventas, extraer el nombre y la cantidad de cada producto y comprobar con `in` si una clave ya existe en un diccionario. Con esas tres piezas ya puedes resolver el problema completo de agrupación de ventas. Como los diccionarios en Python son estructuras mutables, puedes dar de alta productos nuevos a medida que aparecen y sumar unidades a los que ya estaban registrados. En esta sección vas a diferenciar entre asignar una clave con `=` e incrementarla con `+=`, y vas a construir la solución completa de `total_sales_by_product`.
+
+**Lo que tendrás al terminar:** los _scripts_ `operaciones_claves.py`, `acumulador_ventas.py` y `reto_ventas.py`, ejecutados en la terminal con su salida real.
+
+**Requisitos:** haber completado las secciones P1.1, P1.2 y P1.3, y contar con Python 3.10 o superior.
+
+## Paso 1: crear una clave nueva y actualizar una existente con `+=`
+
+La sintaxis `diccionario[clave] = valor` tiene un comportamiento doble en Python: si la clave no existe, crea el par clave-valor; si ya existe, sobrescribe el valor anterior. Por eso, cuando quieres sumar una nueva cantidad sin perder lo que ya habías guardado, necesitas el operador de suma acumulada `+=`, donde `d[clave] += cantidad` equivale exactamente a `d[clave] = d[clave] + cantidad`. Crea `operaciones_claves.py`:
+
+```python
+# Archivo: operaciones_claves.py
+# Creación de pares clave-valor y actualización con el operador +=
+
+total_por_producto = {}
+
+total_por_producto["Laptop"] = 2
+print("Tras crear 'Laptop':", total_por_producto)
+
+total_por_producto["Laptop"] += 3
+print("Tras sumar 3 a 'Laptop':", total_por_producto)
+
+total_por_producto["Mouse"] = 5
+print("Tras crear 'Mouse':", total_por_producto)
+```
+
+```bash
+python3 operaciones_claves.py
+```
+
+```text
+Tras crear 'Laptop': {'Laptop': 2}
+Tras sumar 3 a 'Laptop': {'Laptop': 5}
+Tras crear 'Mouse': {'Laptop': 5, 'Mouse': 5}
+```
+
+| Operación          | Si la clave NO existe          | Si la clave YA existe (p. ej. vale `2`) |
+| ------------------ | ------------------------------ | --------------------------------------- |
+| `d["Laptop"] = 3`  | Crea `"Laptop": 3`             | Sobrescribe el `2` y deja `"Laptop": 3` |
+| `d["Laptop"] += 3` | Falla con `KeyError: 'Laptop'` | Suma `2 + 3` y deja `"Laptop": 5`       |
+
+- **Inicialización obligatoria antes de `+=`:** para ejecutar `total_por_producto["Laptop"] += 3`, Python primero lee el valor actual de `"Laptop"` (`2`), le suma `3` y guarda el resultado (`5`).
+- **Diccionario vacío como punto de partida:** inicializar `total_por_producto = {}` permite ir poblando únicamente los productos que realmente aparezcan en las ventas.
+
+<Callout type="risk">
+
+- **Ejecutar `+=` sobre una clave que aún no existe:** si intentas hacer `total_por_producto["Teclado"] += 1` sin haber creado antes `"Teclado"`, Python falla al intentar leer el valor previo y lanza `KeyError: 'Teclado'`.
+- **Usar `=` en lugar de `+=` al actualizar:** si escribes `total_por_producto["Laptop"] = 3` en la segunda venta, borras las `2` unidades anteriores y el total final queda en `3` en vez de `5`.
+
+</Callout>
+
+## Paso 2: acumular las ventas por producto con `if / else`
+
+Ahora une la verificación con `in` de la sección P1.3 y la actualización con `+=` dentro de un bucle `for`. Por cada transacción de la lista `ventas`, preguntas si el producto ya está en `total_por_producto`: si ya está, le sumas la cantidad con `+=`; si es la primera vez que aparece, lo inicializas con `=`. Crea `acumulador_ventas.py`:
+
+```python
+# Archivo: acumulador_ventas.py
+# Construcción completa de un diccionario acumulador de ventas por producto
+
+ventas = [
+    {"product": "Laptop", "quantity": 2},
+    {"product": "Mouse", "quantity": 5},
+    {"product": "Laptop", "quantity": 3},
+    {"product": "Teclado", "quantity": 1},
+    {"product": "Mouse", "quantity": 2},
+]
+
+total_por_producto = {}
+
+for venta in ventas:
+    producto = venta["product"]
+    cantidad = venta["quantity"]
+
+    if producto in total_por_producto:
+        total_por_producto[producto] += cantidad
+    else:
+        total_por_producto[producto] = cantidad
+
+print("Total de ventas por producto:", total_por_producto)
+```
+
+```bash
+python3 acumulador_ventas.py
+```
+
+```text
+Total de ventas por producto: {'Laptop': 5, 'Mouse': 7, 'Teclado': 1}
+```
+
+- **Primera aparición en la rama `else`:** cuando `"Laptop"` aparece por primera vez en la vuelta 1, aún no está en `total_por_producto`, por lo que entra en el `else` y se crea con valor `2`.
+- **Apariciones repetidas en la rama `if`:** cuando `"Laptop"` vuelve a aparecer en la vuelta 3, la condición `producto in total_por_producto` es `True`, entra en el `if` y suma `2 + 3 = 5`.
+- **Complejidad lineal `O(n)`:** como tanto buscar con `in` como asignar en un diccionario toman tiempo constante `O(1)`, recorrer toda la lista de ventas toma un tiempo proporcional únicamente al número de transacciones.
+
+<Callout type="risk">
+
+- **Declarar `total_por_producto = {}` dentro del bucle `for`:** si colocas la creación del diccionario vacío dentro del ciclo, el acumulador se borrará en cada vuelta y al final solo tendrá el último registro de la lista (`{'Mouse': 2}`).
+- **Sumar `+ 1` en lugar de `+ cantidad`:** si escribes `total_por_producto[producto] += 1`, estarás contando en cuántas facturas apareció el producto en vez de sumar cuántas unidades se vendieron.
+
+</Callout>
+
+## Ejercicio práctico
+
+<Callout type="exercise">
+
+1. Crea el archivo `reto_ventas.py` y define la función `total_sales_by_product(transactions)` que reciba una lista de diccionarios de ventas y devuelva un diccionario con la suma total de `"quantity"` agrupada por cada `"product"`.
+2. Prueba la función pasándole una lista con cinco transacciones (`"Monitor"` con `4`, `"Teclado"` con `2`, `"Monitor"` con `3`, `"Cable HDMI"` con `6` y `"Teclado"` con `5`) e imprime el diccionario devuelto.
+
+</Callout>
+
+Solución. Crea `reto_ventas.py`:
+
+```python
+# Archivo: reto_ventas.py
+# Función total_sales_by_product resuelta con diccionario acumulador e if / else
+
+
+def total_sales_by_product(transactions):
+    acumulador = {}
+
+    for venta in transactions:
+        producto = venta["product"]
+        cantidad = venta["quantity"]
+
+        if producto in acumulador:
+            acumulador[producto] += cantidad
+        else:
+            acumulador[producto] = cantidad
+
+    return acumulador
+
+
+transacciones = [
+    {"product": "Monitor", "quantity": 4},
+    {"product": "Teclado", "quantity": 2},
+    {"product": "Monitor", "quantity": 3},
+    {"product": "Cable HDMI", "quantity": 6},
+    {"product": "Teclado", "quantity": 5},
+]
+
+resultado = total_sales_by_product(transacciones)
+print(resultado)
+```
+
+```bash
+python3 reto_ventas.py
+```
+
+```text
+{'Monitor': 7, 'Teclado': 7, 'Cable HDMI': 6}
+```
+
+- **El diccionario `acumulador` nace vacío antes del `for`:** si `transactions` llegara vacía (`[]`), el bucle no daría ninguna vuelta y la función devolvería limpiamente `{}`.
+- **El `return acumulador` va alineado con el `for`:** la función devuelve el diccionario únicamente cuando el bucle ya terminó de procesar todas las transacciones.
+
+<Callout type="risk">
+
+- **Indentar el `return acumulador` dentro del bucle `for`:** si el `return` queda dentro del ciclo, la función se detendrá en la primera vuelta y devolverá solo el primer producto (`{'Monitor': 4}`), ignorando el resto de la lista.
+
+</Callout>
+
+<Callout type="mastery">
+
+Construyes diccionarios acumuladores desde cero en Python inicializando una clave nueva con `=` en la rama `else` e incrementando su valor acumulado con `+=` en la rama `if`, resolviendo de principio a fin problemas de agrupación y suma como `total_sales_by_product`.
+
+</Callout>
+
+## Resumen
+
+- `diccionario[clave] = valor` crea una nueva entrada si la clave no existe o sobrescribe su valor si ya existía.
+- `diccionario[clave] += cantidad` suma `cantidad` al valor actual de la clave, y exige que la clave ya haya sido inicializada antes.
+- El diccionario acumulador (`acumulador = {}`) se declara siempre fuera y antes del bucle `for`.
+- En el patrón con `if / else`, la rama `if clave in acumulador:` incrementa con `+=` y la rama `else:` asigna el valor inicial con `=`.

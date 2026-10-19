@@ -1,0 +1,175 @@
+---
+sectionId: "P1.3"
+course: "P1"
+title: "Verificación de pertenencia en diccionarios (Operador in)"
+order: 3
+minutes: 30
+summary: "Compruebas si una clave ya existe dentro de un diccionario en tiempo constante usando el operador in con if y else antes de leer su valor."
+---
+
+En la sección P1.2 comprobaste que pedir con corchetes una clave que no existe en un diccionario detiene el programa inmediatamente con un `KeyError`. Cuando construyes un diccionario acumulador para agrupar ventas por producto, al principio el diccionario está vacío y no sabes de antemano qué productos aparecerán ni cuántas veces se repetirán. Antes de leer o modificar el acumulado de un producto, necesitas preguntar si esa clave ya fue registrada. En esta sección vas a usar el operador `in` dentro de estructuras `if / else` para verificar la existencia de claves en tiempo constante `O(1)` y a distinguir entre buscar en las claves y buscar en los valores.
+
+**Lo que tendrás al terminar:** los _scripts_ `consulta_inventario.py`, `claves_vs_valores.py` y `verificador_acumulador.py`, ejecutados en la terminal con su salida real.
+
+**Requisitos:** haber completado las secciones P1.1 y P1.2, y contar con Python 3.10 o superior.
+
+## Paso 1: comprobar si una clave existe con `in` e `if / else`
+
+El operador `in` evalúa si un elemento pertenece a una colección y devuelve un valor booleano (`True` o `False`). Cuando lo aplicas directamente sobre un diccionario (`clave in diccionario`), Python consulta su tabla _hash_ en tiempo constante `O(1)` y responde si esa clave existe. Al colocar esa pregunta en un bloque `if / else`, solo accedes con corchetes cuando tienes la certeza de que la clave está presente. Crea `consulta_inventario.py`:
+
+```python
+# Archivo: consulta_inventario.py
+# Verificación segura de claves en un diccionario con el operador in
+
+inventario = {
+    "Laptop": 10,
+    "Mouse": 25,
+}
+
+productos_a_consultar = ["Laptop", "Teclado"]
+
+for producto in productos_a_consultar:
+    if producto in inventario:
+        print(f"El producto '{producto}' existe. Stock actual: {inventario[producto]}")
+    else:
+        print(f"El producto '{producto}' aún no está registrado en el inventario.")
+```
+
+```bash
+python3 consulta_inventario.py
+```
+
+```text
+El producto 'Laptop' existe. Stock actual: 10
+El producto 'Teclado' aún no está registrado en el inventario.
+```
+
+- **Lectura protegida dentro del bloque `if`:** la expresión `inventario[producto]` solo se ejecuta cuando `producto in inventario` es `True`, evitando por completo el error `KeyError` con `"Teclado"`.
+- **Patrón base de agrupación y conteo:** esta estructura `if clave in diccionario: ... else: ...` es el cimiento para construir diccionarios acumuladores desde cero cuando procesas datos de entrada dinámicos.
+- **No uses `in inventario.keys()`:** escribir `if producto in inventario:` es la forma idiomática en Python y la más directa; añadir `.keys()` es redundante.
+
+<Callout type="risk">
+
+- **Leer los corchetes antes del `if`:** si guardas `stock = inventario[producto]` en la línea anterior al `if producto in inventario:`, Python intentará leer `"Teclado"` antes de llegar a la condición y lanzará `KeyError: 'Teclado'`.
+- **Confundir el operador `in` del `for` con el operador `in` del `if`:** en `for producto in productos_a_consultar:`, la palabra `in` recorre cada elemento de la lista; en `if producto in inventario:`, hace una pregunta booleana que devuelve `True` o `False`.
+
+</Callout>
+
+## Paso 2: distinguir entre buscar en las claves y en los valores
+
+Por diseño, `elemento in diccionario` busca **exclusivamente entre las claves**, nunca entre los valores asociados. Si alguna vez necesitas comprobar si un número o dato figura entre los valores guardados, debes indicarlo de forma explícita con `elemento in diccionario.values()`. También puedes negar la pregunta con `not in` cuando solo te interese actuar si la clave aún no existe. Crea `claves_vs_valores.py`:
+
+```python
+# Archivo: claves_vs_valores.py
+# Diferencia entre buscar en las claves de un diccionario y buscar en sus valores
+
+inventario = {
+    "Laptop": 10,
+    "Mouse": 25,
+}
+
+print("¿'Mouse' es una clave?:", "Mouse" in inventario)
+print("¿25 es una clave?:", 25 in inventario)
+print("¿25 está en los valores?:", 25 in inventario.values())
+print("¿'Teclado' NO está en el inventario?:", "Teclado" not in inventario)
+```
+
+```bash
+python3 claves_vs_valores.py
+```
+
+```text
+¿'Mouse' es una clave?: True
+¿25 es una clave?: False
+¿25 está en los valores?: True
+¿'Teclado' NO está en el inventario?: True
+```
+
+| Expresión                     | Qué inspecciona | Complejidad | Resultado con `inventario` |
+| ----------------------------- | --------------- | ----------- | -------------------------- |
+| `"Mouse" in inventario`       | Claves          | `O(1)`      | `True`                     |
+| `"Teclado" not in inventario` | Claves          | `O(1)`      | `True`                     |
+| `25 in inventario`            | Claves          | `O(1)`      | `False`                    |
+| `25 in inventario.values()`   | Valores         | `O(n)`      | `True`                     |
+
+- **`25 in inventario` devuelve `False`:** aunque `25` está guardado dentro del diccionario como stock de `"Mouse"`, no es una clave, por lo que la búsqueda directa responde `False`.
+- **`not in` simplifica las inicializaciones:** escribir `if clave not in diccionario:` resulta muy útil cuando solo quieres crear una clave por defecto si todavía no existe.
+- **Diferencia de velocidad entre claves y valores:** buscar en las claves (`in inventario`) es instantáneo (`O(1)`) gracias a la tabla _hash_, mientras que buscar en `.values()` (`O(n)`) obliga a Python a revisar los valores uno por uno.
+
+<Callout type="risk">
+
+- **Escribir `not clave in diccionario` en lugar de `clave not in diccionario`:** aunque ambas expresiones devuelven el mismo booleano, en Python la sintaxis estándar y legible es siempre `clave not in diccionario`.
+- **Usar `.values()` dentro de bucles grandes:** si recorres miles de ventas y en cada vuelta haces una búsqueda sobre `.values()`, el algoritmo se vuelve cuadrático (`O(n²)`) y se ralentiza drásticamente.
+
+</Callout>
+
+## Ejercicio práctico
+
+<Callout type="exercise">
+
+1. Crea el archivo `verificador_acumulador.py` con un diccionario inicial `acumulador = {"Laptop": 2}` y una lista `total_sales_by_product` con tres ventas: `"Laptop"` (cantidad `3`), `"Mouse"` (cantidad `5`) y `"Teclado"` (cantidad `1`).
+2. Recorre `total_sales_by_product` con `for`, extrae `"product"` y `"quantity"`, y usa `if producto in acumulador:` para imprimir `[EXISTE] '<producto>' ya tiene <acumulado> unidades registradas (nueva venta: <cantidad>).` cuando la clave exista, o `[NUEVO] '<producto>' no existe en el acumulador (se inicializará con: <cantidad>).` cuando no exista.
+
+</Callout>
+
+Solución. Crea `verificador_acumulador.py`:
+
+```python
+# Archivo: verificador_acumulador.py
+# Clasificación de productos existentes y nuevos frente a un diccionario acumulador
+
+acumulador = {
+    "Laptop": 2,
+}
+
+total_sales_by_product = [
+    {"product": "Laptop", "quantity": 3},
+    {"product": "Mouse", "quantity": 5},
+    {"product": "Teclado", "quantity": 1},
+]
+
+for venta in total_sales_by_product:
+    producto = venta["product"]
+    cantidad = venta["quantity"]
+
+    if producto in acumulador:
+        print(
+            f"[EXISTE] '{producto}' ya tiene {acumulador[producto]} unidades registradas (nueva venta: {cantidad})."
+        )
+    else:
+        print(
+            f"[NUEVO] '{producto}' no existe en el acumulador (se inicializará con: {cantidad})."
+        )
+```
+
+```bash
+python3 verificador_acumulador.py
+```
+
+```text
+[EXISTE] 'Laptop' ya tiene 2 unidades registradas (nueva venta: 3).
+[NUEVO] 'Mouse' no existe en el acumulador (se inicializará con: 5).
+[NUEVO] 'Teclado' no existe en el acumulador (se inicializará con: 1).
+```
+
+- **Separación de los dos caminos del acumulador:** la rama `if` identifica los productos a los que habrá que sumarles la nueva cantidad, mientras que la rama `else` identifica los que se deberán dar de alta por primera vez.
+- **Acceso a `acumulador[producto]` solo cuando es seguro:** en las vueltas de `"Mouse"` y `"Teclado"`, el programa entra en el `else` sin intentar leer `acumulador[producto]`.
+
+<Callout type="risk">
+
+- **Evaluar `venta in acumulador` en lugar de `producto in acumulador`:** `venta` es el diccionario entero (`{"product": "Laptop", "quantity": 3}`), y un diccionario no puede usarse como clave de búsqueda dentro de otro diccionario; si lo intentas, Python lanzará `TypeError: unhashable type: 'dict'`.
+
+</Callout>
+
+<Callout type="mastery">
+
+Verificas de forma segura en tiempo constante `O(1)` si una clave existe dentro de un diccionario mediante `clave in diccionario` antes de acceder a su valor, distingues la búsqueda por claves de la búsqueda por `.values()` y estructuras las dos ramas (`if / else`) necesarias para construir un diccionario acumulador sin errores `KeyError`.
+
+</Callout>
+
+## Resumen
+
+- `clave in diccionario` devuelve `True` si la clave existe en el diccionario y `False` en caso contrario, en tiempo constante `O(1)`.
+- Combinar `if clave in diccionario:` con `else:` evita errores `KeyError` al consultar diccionarios cuyas claves no se conocen de antemano.
+- Escribe siempre `if clave in diccionario:` de forma directa, sin añadir `.keys()`.
+- El operador `in` sobre un diccionario busca solo en las claves; para buscar entre los valores hay que usar explícitamente `valor in diccionario.values()`.

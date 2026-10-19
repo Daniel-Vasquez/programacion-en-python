@@ -1,0 +1,173 @@
+---
+sectionId: "P1.5"
+course: "P1"
+title: "Método .get() de los diccionarios (Alternativa intermedia/avanzada)"
+order: 5
+minutes: 30
+summary: "Consultas claves opcionales sin errores KeyError usando el método .get con un valor por defecto y reduces el acumulador de ventas a una sola línea."
+---
+
+En la sección P1.4 construiste un acumulador de ventas usando un bloque `if / else` de cuatro líneas: comprobabas con `in` si el producto ya estaba en el diccionario, sumabas si existía o lo inicializabas si era nuevo. En Python existe una alternativa más directa que expresa esa misma lógica en una sola línea: el método `.get()`. Este método busca una clave en el diccionario y, si todavía no existe, devuelve automáticamente un valor por defecto (como `0`) sin lanzar ningún `KeyError`. En esta sección vas a comprobar cómo responde `.get()` ante claves presentes y ausentes y vas a simplificar la función `total_sales_by_product`.
+
+**Lo que tendrás al terminar:** los _scripts_ `consulta_get.py`, `acumulador_get.py` y `reto_ventas_get.py`, ejecutados en la terminal con su salida real.
+
+**Requisitos:** haber completado las secciones P1.1 a P1.4, y contar con Python 3.10 o superior.
+
+## Paso 1: consultar claves con un valor por defecto usando `.get()`
+
+El método `.get(clave, valor_por_defecto)` consulta una clave en tiempo constante `O(1)` siguiendo tres reglas simples: si la clave existe en el diccionario, devuelve su valor actual; si la clave no existe, devuelve `valor_por_defecto`; y si omites ese segundo argumento, devuelve `None` por defecto. En ningún caso modifica el diccionario original. Crea `consulta_get.py`:
+
+```python
+# Archivo: consulta_get.py
+# Consulta segura de claves presentes y ausentes con el método .get()
+
+inventario = {
+    "Laptop": 10,
+    "Mouse": 25,
+}
+
+print("Laptop (existe):", inventario.get("Laptop", 0))
+print("Teclado (con defecto 0):", inventario.get("Teclado", 0))
+print("Teclado (sin defecto):", inventario.get("Teclado"))
+print("Diccionario intacto:", inventario)
+```
+
+```bash
+python3 consulta_get.py
+```
+
+```text
+Laptop (existe): 10
+Teclado (con defecto 0): 0
+Teclado (sin defecto): None
+Diccionario intacto: {'Laptop': 10, 'Mouse': 25}
+```
+
+| Expresión                    | Si la clave existe (`"Laptop"`) | Si la clave NO existe (`"Teclado"`) |
+| ---------------------------- | ------------------------------- | ----------------------------------- |
+| `inventario["clave"]`        | Devuelve `10`                   | Lanza `KeyError`                    |
+| `inventario.get("clave")`    | Devuelve `10`                   | Devuelve `None`                     |
+| `inventario.get("clave", 0)` | Devuelve `10`                   | Devuelve `0`                        |
+
+- **El valor por defecto solo se usa si la clave no existe:** con `"Laptop"`, `.get("Laptop", 0)` ignora el `0` y devuelve `10`.
+- **Lectura sin efectos secundarios:** llamar a `inventario.get("Teclado", 0)` devuelve `0` para esa expresión, pero no añade `"Teclado"` dentro de `inventario`.
+- **Ideal para configuraciones y JSON con campos opcionales:** cuando un diccionario puede o no traer un campo (como un descuento o una cantidad por defecto), `.get()` evita llenar el código de condicionales.
+
+<Callout type="risk">
+
+- **Omitir el `0` por defecto cuando vas a sumar (`inventario.get("Teclado") + 1`):** sin el segundo argumento, `.get()` devuelve `None`, e intentar sumar `None + 1` detiene el programa con `TypeError: unsupported operand type(s) for +: 'NoneType' and 'int'`.
+- **Usar corchetes en vez de paréntesis (`inventario.get["Laptop"]`):** `.get` es un método (una función del diccionario), por lo que sus argumentos van siempre entre paréntesis; usar corchetes lanza `TypeError: 'builtin_function_or_method' object is not subscriptable`.
+
+</Callout>
+
+## Paso 2: reducir el acumulador a una sola línea con `.get(clave, 0)`
+
+Si combinas la asignación `d[clave] = ...` con `d.get(clave, 0) + cantidad`, reemplazas todo el bloque `if / else` de la sección P1.4 por una única línea. Cuando el producto aparece por primera vez, `.get(producto, 0)` devuelve `0`, se le suma `cantidad` y se crea la clave; cuando vuelve a aparecer, `.get(producto, 0)` devuelve el acumulado anterior, se le suma `cantidad` y se actualiza la clave. Crea `acumulador_get.py`:
+
+```python
+# Archivo: acumulador_get.py
+# Acumulador de ventas por producto en una sola línea usando .get(producto, 0)
+
+ventas = [
+    {"product": "Laptop", "quantity": 2},
+    {"product": "Mouse", "quantity": 5},
+    {"product": "Laptop", "quantity": 3},
+    {"product": "Teclado", "quantity": 1},
+]
+
+total_por_producto = {}
+
+for venta in ventas:
+    producto = venta["product"]
+    cantidad = venta["quantity"]
+    total_por_producto[producto] = total_por_producto.get(producto, 0) + cantidad
+
+print("Resultado con .get():", total_por_producto)
+```
+
+```bash
+python3 acumulador_get.py
+```
+
+```text
+Resultado con .get(): {'Laptop': 5, 'Mouse': 5, 'Teclado': 1}
+```
+
+- **Patrón estándar en entrevistas y producción:** `d[k] = d.get(k, 0) + valor` es la forma más limpia y reconocida en Python para escribir acumuladores sin importar librerías externas.
+- **Mismo resultado en una sola línea:** en la vuelta 1 calcula `0 + 2` y guarda `"Laptop": 2`; en la vuelta 3 calcula `2 + 3` y actualiza `"Laptop": 5`.
+- **Alternativas de la biblioteca estándar:** para proyectos grandes con agrupaciones o conteos masivos, Python también ofrece `collections.defaultdict(int)` y `collections.Counter`.
+
+<Callout type="risk">
+
+- **Mezclar `+=` con `.get()` (`total_por_producto[producto] += total_por_producto.get(producto, 0) + cantidad`):** con `.get()` debes usar asignación simple (`=`); si pones `+=`, Python intentará leer `total_por_producto[producto]` a la izquierda antes de que exista y fallará con `KeyError` en la primera vuelta.
+- **Pasar el valor por defecto con el tipo equivocado (`.get(producto, "0")`):** si pasas `"0"` como texto en lugar del número `0`, la suma `"0" + 2` fallará con `TypeError: can only concatenate str (not "int") to str`.
+
+</Callout>
+
+## Ejercicio práctico
+
+<Callout type="exercise">
+
+1. Crea el archivo `reto_ventas_get.py` con la función `total_sales_by_product(transactions)` usando `.get()` tanto para extraer `"quantity"` (asumiendo `1` unidad por defecto si un diccionario de venta no incluye la clave `"quantity"`) como para acumular el total por cada `"product"` (empezando en `0`).
+2. Prueba la función con cinco transacciones donde la segunda venta (`{"product": "Mouse"}`) no traiga la clave `"quantity"`, e imprime el diccionario resultante.
+
+</Callout>
+
+Solución. Crea `reto_ventas_get.py`:
+
+```python
+# Archivo: reto_ventas_get.py
+# Función total_sales_by_product usando .get() para campos opcionales y acumulación
+
+
+def total_sales_by_product(transactions):
+    acumulador = {}
+
+    for venta in transactions:
+        producto = venta["product"]
+        cantidad = venta.get("quantity", 1)
+        acumulador[producto] = acumulador.get(producto, 0) + cantidad
+
+    return acumulador
+
+
+transacciones = [
+    {"product": "Monitor", "quantity": 4},
+    {"product": "Mouse"},
+    {"product": "Monitor", "quantity": 2},
+    {"product": "Teclado", "quantity": 3},
+    {"product": "Mouse", "quantity": 5},
+]
+
+print(total_sales_by_product(transacciones))
+```
+
+```bash
+python3 reto_ventas_get.py
+```
+
+```text
+{'Monitor': 6, 'Mouse': 6, 'Teclado': 3}
+```
+
+- **Doble uso de `.get()` con distintos valores por defecto:** `venta.get("quantity", 1)` toma `1` cuando falta la cantidad en la transacción de `"Mouse"`, mientras que `acumulador.get(producto, 0)` toma `0` cuando el producto aún no existe en el acumulador.
+- **Código compacto y sin ramas:** el cuerpo del bucle `for` queda reducido a tres líneas lineales sin bloques `if / else` anidados.
+
+<Callout type="risk">
+
+- **Cuando la clave sí existe pero su valor es `None` (`{"product": "Mouse", "quantity": None}`):** como la clave `"quantity"` sí está presente en el diccionario, `venta.get("quantity", 1)` devolverá `None` en lugar de `1`; en datos sucios donde puedan llegar valores `None`, se usa `venta.get("quantity") or 1`.
+
+</Callout>
+
+<Callout type="mastery">
+
+Utilizas el método `.get(clave, valor_por_defecto)` para leer campos opcionales de un diccionario sin provocar `KeyError` y reduces la lógica de inicialización y suma de un diccionario acumulador a una sola línea con `acumulador[clave] = acumulador.get(clave, 0) + cantidad`.
+
+</Callout>
+
+## Resumen
+
+- `diccionario.get(clave, valor_por_defecto)` devuelve el valor de la clave si existe, o `valor_por_defecto` si no existe, sin lanzar `KeyError`.
+- Si no se indica un segundo argumento, `diccionario.get(clave)` devuelve `None` cuando la clave no está presente.
+- La línea `acumulador[clave] = acumulador.get(clave, 0) + cantidad` sustituye por completo al bloque `if clave in acumulador: ... else: ...`.
+- Al usar `.get()` para acumular, se asigna siempre con `=` y nunca con `+=`.

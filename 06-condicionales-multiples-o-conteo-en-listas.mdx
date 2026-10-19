@@ -1,0 +1,172 @@
+---
+sectionId: "P1.6"
+course: "P1"
+title: "Condicionales múltiples (if / elif / else) o conteo en listas (.count())"
+order: 6
+minutes: 35
+summary: "Calculas las coordenadas finales de una secuencia de pasos evaluando cada código con if, elif y else o contando apariciones directas con el método .count."
+---
+
+En el reto del desplazamiento de las hormigas recibes una lista de números enteros donde cada código representa un paso de una unidad en el plano cartesiano: `0` hacia el Norte (`+y`), `1` hacia el Sur (`-y`), `2` hacia el Este (`+x`) y `3` hacia el Oeste (`-x`). Para averiguar en qué coordenada `(x, y)` termina la hormiga tras completar el recorrido, necesitas traducir esa secuencia en desplazamientos verticales y horizontales. Python permite resolverlo de dos maneras: evaluando cada paso con condicionales múltiples (`if / elif / else`) dentro de un bucle `for`, o contando cuántas veces se repite cada número con el método `.count()`. En esta sección vas a programar ambos enfoques y a comparar sus ventajas.
+
+**Lo que tendrás al terminar:** los _scripts_ `movimiento_condicionales.py`, `movimiento_count.py` y `simulador_hormiga.py`, ejecutados en la terminal con su salida real.
+
+**Requisitos:** haber completado las secciones P1.1 a P1.5, y contar con Python 3.10 o superior.
+
+## Paso 1: evaluar cada movimiento paso a paso con `if / elif / else`
+
+El enfoque imperativo parte del origen `x, y = 0, 0` y recorre la lista de movimientos con un bucle `for`. En cada vuelta, una cadena `if / elif` evalúa qué código (`0`, `1`, `2` o `3`) se está procesando: en cuanto una condición resulta `True`, Python ejecuta su suma o resta correspondiente y salta el resto de las ramas de esa vuelta. Crea `movimiento_condicionales.py`:
+
+```python
+# Archivo: movimiento_condicionales.py
+# Cálculo de la posición final (x, y) paso a paso usando if / elif
+
+# 0 = Norte (+y), 1 = Sur (-y), 2 = Este (+x), 3 = Oeste (-x)
+movimientos = [0, 0, 2, 0, 3, 2, 2, 1, 0, 2]
+
+x, y = 0, 0
+
+for paso in movimientos:
+    if paso == 0:
+        y += 1  # Sube al Norte
+    elif paso == 1:
+        y -= 1  # Baja al Sur
+    elif paso == 2:
+        x += 1  # Avanza al Este
+    elif paso == 3:
+        x -= 1  # Avanza al Oeste
+
+print(f"Posición final (con if/elif): x = {x}, y = {y}")
+```
+
+```bash
+python3 movimiento_condicionales.py
+```
+
+```text
+Posición final (con if/elif): x = 3, y = 3
+```
+
+- **Ramas mutuamente excluyentes con `elif`:** como un mismo `paso` no puede valer `0` y `2` a la vez, usar `elif` evita que Python siga comprobando las demás direcciones cuando ya encontró la correcta.
+- **Control del estado en cada paso intermedio:** este enfoque es obligatorio cuando necesitas comprobar en tiempo real si la hormiga choca contra un obstáculo, sale de los límites de una cuadrícula o pasa dos veces por la misma casilla.
+- **Un único recorrido sobre la lista:** el bucle lee la lista `movimientos` de principio a fin una sola vez, lo que resulta óptimo si la secuencia tiene millones de pasos.
+
+<Callout type="risk">
+
+- **Usar un `else:` abierto en lugar de `elif paso == 3:`:** si dejas la cuarta dirección en un `else:` sin condición y en la lista se cuela un número inválido como `9` o `-1`, el programa moverá la hormiga hacia el Oeste (`x -= 1`) en silencio en vez de ignorar el dato erróneo.
+- **Escribir `=` en vez de `==` en la condición (`if paso = 0:`):** en Python un solo signo igual es asignación y dos signos iguales (`==`) son comparación; usar `=` dentro de un `if` detiene la ejecución con `SyntaxError`.
+
+</Callout>
+
+## Paso 2: calcular el desplazamiento neto con `.count()`
+
+En un plano libre sin obstáculos, el orden en que la hormiga da los pasos no cambia el punto al que llega: dar cuatro pasos al Norte (`0`) y uno al Sur (`1`) siempre la deja en `y = 3`. El método nativo de listas `.count(valor)` devuelve cuántas veces aparece `valor` dentro de la lista, permitiendo calcular el desplazamiento neto en dos restas directas sin escribir ningún bucle ni condicional. Crea `movimiento_count.py`:
+
+```python
+# Archivo: movimiento_count.py
+# Cálculo directo del desplazamiento neto en X e Y usando el método .count()
+
+movimientos = [0, 0, 2, 0, 3, 2, 2, 1, 0, 2]
+
+y_neto = movimientos.count(0) - movimientos.count(1)
+x_neto = movimientos.count(2) - movimientos.count(3)
+
+print(f"Posición final (con .count()): x = {x_neto}, y = {y_neto}")
+```
+
+```bash
+python3 movimiento_count.py
+```
+
+```text
+Posición final (con .count()): x = 3, y = 3
+```
+
+| Criterio                     | Enfoque con `if / elif` en bucle | Enfoque con `.count()`              |
+| ---------------------------- | -------------------------------- | ----------------------------------- |
+| Líneas de código             | 10–12 líneas                     | 2 líneas                            |
+| Veces que recorre la lista   | 1 sola pasada                    | 4 pasadas internas (una por código) |
+| Detecta choques en el camino | Sí (paso a paso)                 | No (solo entrega el total final)    |
+
+- **Propiedad conmutativa del desplazamiento:** restar `(pasos al Norte - pasos al Sur)` para `y` y `(pasos al Este - pasos al Oeste)` para `x` produce exactamente el mismo resultado `(3, 3)` que el ciclo paso a paso.
+- **Ideal para retos rápidos con pocos códigos:** cuando solo existen 4 direcciones y únicamente importa la posición final, `.count()` reduce drásticamente el tiempo de escritura y elimina posibles errores de indentación.
+
+<Callout type="risk">
+
+- **Invertir el orden de la resta (`movimientos.count(1) - movimientos.count(0)`):** si restas `Sur - Norte` en lugar de `Norte - Sur`, invertirás el signo de la coordenada (`y = -3` en vez de `y = 3`).
+- **Llamar a `.count()` dentro de un bucle `for`:** cada llamada a `.count()` recorre toda la lista de principio a fin; usar `.count()` fuera de cualquier bucle es muy rápido, pero meterlo dentro de un `for` multiplica innecesariamente el trabajo.
+
+</Callout>
+
+## Ejercicio práctico
+
+<Callout type="exercise">
+
+1. Crea el archivo `simulador_hormiga.py` con dos funciones que reciban una lista `steps`: `posicion_con_bucle(steps)` (resuelta con `for` e `if / elif`) y `posicion_con_count(steps)` (resuelta con `.count()`), devolviendo ambas la tupla `(x, y)`.
+2. Pruébalas con la secuencia `ruta_hormiga = [0, 2, 2, 0, 1, 2, 3, 0, 0, 2]` e imprime el resultado de cada función para verificar que coinciden.
+
+</Callout>
+
+Solución. Crea `simulador_hormiga.py`:
+
+```python
+# Archivo: simulador_hormiga.py
+# Comparación entre el cálculo de coordenadas con if / elif y con .count()
+
+
+def posicion_con_bucle(steps):
+    x, y = 0, 0
+    for paso in steps:
+        if paso == 0:
+            y += 1
+        elif paso == 1:
+            y -= 1
+        elif paso == 2:
+            x += 1
+        elif paso == 3:
+            x -= 1
+    return x, y
+
+
+def posicion_con_count(steps):
+    x = steps.count(2) - steps.count(3)
+    y = steps.count(0) - steps.count(1)
+    return x, y
+
+
+ruta_hormiga = [0, 2, 2, 0, 1, 2, 3, 0, 0, 2]
+
+print("Con bucle if/elif:", posicion_con_bucle(ruta_hormiga))
+print("Con método .count():", posicion_con_count(ruta_hormiga))
+```
+
+```bash
+python3 simulador_hormiga.py
+```
+
+```text
+Con bucle if/elif: (3, 3)
+Con método .count(): (3, 3)
+```
+
+- **Ambas funciones devuelven `(3, 3)`:** la hormiga dio 4 pasos al Norte (`0`) y 1 al Sur (`1`) para terminar en `y = 3`, y dio 4 pasos al Este (`2`) y 1 al Oeste (`3`) para terminar en `x = 3`.
+- **Coordenadas listas para calcular la distancia:** tener `x` e `y` despejados deja todo preparado para aplicar el Teorema de Pitágoras en la siguiente sección P1.7.
+
+<Callout type="risk">
+
+- **Confundir qué códigos corresponden al eje `x` y cuáles al eje `y`:** si sumas los pasos `0` y `1` en `x` y los pasos `2` y `3` en `y`, intercambiarás las coordenadas finales (`(x, y)` quedará invertido como `(y, x)`).
+
+</Callout>
+
+<Callout type="mastery">
+
+Calculas la coordenada final `(x, y)` de una secuencia de movimientos discretos tanto de forma paso a paso con `if / elif / else` dentro de un bucle `for` como de forma directa mediante `lista.count()`, eligiendo el enfoque adecuado según si necesitas inspeccionar estados intermedios o solo obtener el desplazamiento neto.
+
+</Callout>
+
+## Resumen
+
+- `if / elif / else` dentro de un bucle `for` permite evaluar cada código de movimiento paso a paso y actualizar `x` e `y` en una sola pasada sobre la lista.
+- `lista.count(valor)` devuelve cuántas veces aparece `valor` en la lista sin escribir un ciclo explícito.
+- El desplazamiento neto en un plano libre se obtiene restando los pasos opuestos: `y = steps.count(0) - steps.count(1)` y `x = steps.count(2) - steps.count(3)`.
+- Usa `.count()` cuando solo importe la posición final y `if / elif` cuando debas validar límites u obstáculos en cada paso.

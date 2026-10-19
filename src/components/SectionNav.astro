@@ -1,0 +1,54 @@
+---
+interface NavItem {
+  slug: string;
+  sectionId: string;
+  title: string;
+}
+
+interface Props {
+  courseSlug: string;
+  prev?: NavItem | null;
+  next?: NavItem | null;
+}
+
+const { courseSlug, prev, next } = Astro.props;
+---
+
+{
+  (prev || next) && (
+    <nav
+      aria-label="Navegación entre secciones"
+      class="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2"
+    >
+      {prev ? (
+        <a
+          href={`/cursos/${courseSlug}/${prev.slug}`}
+          class="group rounded-xl border border-surface-2 bg-surface p-4 transition hover:border-accent"
+        >
+          <span class="font-sans text-xs font-medium text-muted">
+            ← Anterior · {prev.sectionId}
+          </span>
+          <p class="mt-1 font-serif text-base font-semibold text-fg group-hover:text-accent-strong">
+            {prev.title}
+          </p>
+        </a>
+      ) : (
+        <div />
+      )}
+
+      {next && (
+        <a
+          href={`/cursos/${courseSlug}/${next.slug}`}
+          class="group rounded-xl border border-surface-2 bg-surface p-4 text-right transition hover:border-accent"
+        >
+          <span class="font-sans text-xs font-medium text-muted">
+            Siguiente · {next.sectionId} →
+          </span>
+          <p class="mt-1 font-serif text-base font-semibold text-fg group-hover:text-accent-strong">
+            {next.title}
+          </p>
+        </a>
+      )}
+    </nav>
+  )
+}

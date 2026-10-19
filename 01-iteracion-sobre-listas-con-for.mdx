@@ -1,0 +1,157 @@
+---
+sectionId: "P1.1"
+course: "P1"
+title: "Iteración sobre listas con for"
+order: 1
+minutes: 30
+summary: "Recorres listas de diccionarios en Python con el bucle for y con enumerate, comprobando que la variable de iteración recibe cada registro completo."
+---
+
+Cuando procesas datos de una tienda, de un archivo JSON o de una _API_, rara vez recibes números sueltos: lo habitual es recibir una lista donde cada posición guarda un registro completo en forma de diccionario. En otros lenguajes necesitas crear un contador numérico y sumarle uno en cada vuelta para leer cada posición. En Python, el bucle `for` recorre la colección directamente y te entrega el elemento entero en cada paso. En esta sección vas a recorrer una lista de ventas, a comprobar qué tipo de dato toma la variable de iteración en cada vuelta y a numerar los registros sin usar índices manuales.
+
+**Lo que tendrás al terminar:** los _scripts_ `ventas.py`, `enumerar_ventas.py` y `transacciones.py`, ejecutados en la terminal con su salida real.
+
+**Requisitos:** Python 3.10 o superior instalado en tu equipo.
+
+## Paso 1: recorrer una lista de diccionarios con `for`
+
+En Python, el bucle `for` es un iterador que recorre de principio a fin cualquier objeto iterable (como una lista, una tupla o una cadena de texto). Cuando la lista contiene diccionarios —como ocurre en el reto `total_sales_by_product`—, la variable que colocas después de `for` no guarda un número ni un texto aislado, sino el diccionario completo de esa vuelta. Crea `ventas.py`:
+
+```python
+# Archivo: ventas.py
+# Recorrido directo de una lista donde cada elemento es un diccionario de venta
+
+ventas = [
+    {"product": "Laptop", "quantity": 2},
+    {"product": "Mouse", "quantity": 5},
+    {"product": "Teclado", "quantity": 3},
+]
+
+for registro in ventas:
+    print(f"Tipo: {type(registro)} | Contenido: {registro}")
+```
+
+```bash
+python3 ventas.py
+```
+
+```text
+Tipo: <class 'dict'> | Contenido: {'product': 'Laptop', 'quantity': 2}
+Tipo: <class 'dict'> | Contenido: {'product': 'Mouse', 'quantity': 5}
+Tipo: <class 'dict'> | Contenido: {'product': 'Teclado', 'quantity': 3}
+```
+
+- **La variable de iteración recibe el valor directo:** en cada una de las tres vueltas, `registro` toma el diccionario completo de esa fila (`<class 'dict'>`), sin necesidad de escribir `ventas[i]`.
+- **Nombres en plural y en singular:** llamar en plural a la lista (`ventas`) y en singular a la variable del ciclo (`venta` o `registro`) deja claro en todo momento si estás trabajando con toda la colección o con un solo elemento.
+- **El bucle termina solo:** Python detiene el recorrido automáticamente tras procesar el último elemento de `ventas`, por lo que es imposible salirse del rango de la lista.
+
+<Callout type="risk">
+
+- **Reutilizar el mismo nombre para la lista y la variable (`for ventas in ventas:`):** dentro del bucle, el nombre `ventas` deja de apuntar a la lista completa y pasa a valer solo el último diccionario recorrido, sobrescribiendo la variable original en el resto del script.
+- **Modificar la lista mientras la recorres:** añadir o borrar elementos de `ventas` con `.append()` o `.remove()` dentro del mismo `for` desplaza las posiciones internas del iterador y hace que el bucle se salte registros o entre en un ciclo infinito.
+
+</Callout>
+
+## Paso 2: numerar cada vuelta con `enumerate()`
+
+Quienes vienen de otros lenguajes suelen escribir `for i in range(len(ventas)):` cuando necesitan saber el número de vuelta. En Python eso obliga a leer luego `ventas[i]` manualmente y ensucia el código. La función nativa `enumerate()` resuelve este caso entregando dos datos a la vez en cada paso: el número de vuelta y el elemento completo. Crea `enumerar_ventas.py`:
+
+```python
+# Archivo: enumerar_ventas.py
+# Uso de enumerate() para obtener la posición y el diccionario al mismo tiempo
+
+ventas = [
+    {"product": "Laptop", "quantity": 2},
+    {"product": "Mouse", "quantity": 5},
+    {"product": "Teclado", "quantity": 3},
+]
+
+for indice, venta in enumerate(ventas, start=1):
+    print(f"Registro #{indice}: {venta}")
+```
+
+```bash
+python3 enumerar_ventas.py
+```
+
+```text
+Registro #1: {'product': 'Laptop', 'quantity': 2}
+Registro #2: {'product': 'Mouse', 'quantity': 5}
+Registro #3: {'product': 'Teclado', 'quantity': 3}
+```
+
+| Forma de recorrer                    | Qué entrega en cada vuelta | Cuándo usarla                                      |
+| ------------------------------------ | -------------------------- | -------------------------------------------------- |
+| `for venta in ventas:`               | El diccionario completo    | Cuando solo necesitas los datos de cada elemento   |
+| `for i, venta in enumerate(ventas):` | Índice y diccionario       | Cuando necesitas numerar filas o saber la posición |
+| `for i in range(len(ventas)):`       | Solo el índice numérico    | Evitar al recorrer listas de elementos             |
+
+- **Desempaquetado en dos variables:** `indice, venta` recibe en la primera variable el contador entero y en la segunda el diccionario completo de esa vuelta.
+- **El parámetro `start=1` ajusta el inicio del conteo:** por defecto `enumerate()` empieza a contar en `0`; pasar `start=1` numera las filas de forma natural para reportes o mensajes por consola sin alterar los elementos de la lista.
+- **Adiós a `range(len(lista))`:** evitas anidar dos funciones y mantienes el acceso directo a `venta` sin corchetes de índice.
+
+<Callout type="risk">
+
+- **Olvidar la primera variable al usar `enumerate()`:** si escribes `for venta in enumerate(ventas):` con una sola variable, `venta` ya no será un diccionario sino una tupla `(0, {'product': 'Laptop', 'quantity': 2})`, lo que romperá cualquier operación posterior que espere un diccionario.
+- **Invertir el orden de las variables (`for venta, indice in enumerate(ventas):`):** `enumerate()` entrega siempre primero el número y después el elemento; cambiarles el nombre no cambia el orden en que Python asigna los valores.
+
+</Callout>
+
+## Ejercicio práctico
+
+<Callout type="exercise">
+
+1. Crea el archivo `transacciones.py` con una lista llamada `total_sales_by_product` que contenga cuatro diccionarios de ventas: `"Monitor"` (cantidad `4`), `"Cable HDMI"` (cantidad `10`), `"Soporte"` (cantidad `2`) y `"Webcam"` (cantidad `6`).
+2. Recorre `total_sales_by_product` usando `enumerate()` empezando en `1` e imprime en cada línea el número de fila, el nombre del tipo de dato (`type(venta).__name__`) y el diccionario completo con el formato `Fila N (dict): {...}`.
+
+</Callout>
+
+Solución. Crea `transacciones.py`:
+
+```python
+# Archivo: transacciones.py
+# Recorrido numerado de la lista de diccionarios total_sales_by_product
+
+total_sales_by_product = [
+    {"product": "Monitor", "quantity": 4},
+    {"product": "Cable HDMI", "quantity": 10},
+    {"product": "Soporte", "quantity": 2},
+    {"product": "Webcam", "quantity": 6},
+]
+
+for numero, venta in enumerate(total_sales_by_product, start=1):
+    print(f"Fila {numero} ({type(venta).__name__}): {venta}")
+```
+
+```bash
+python3 transacciones.py
+```
+
+```text
+Fila 1 (dict): {'product': 'Monitor', 'quantity': 4}
+Fila 2 (dict): {'product': 'Cable HDMI', 'quantity': 10}
+Fila 3 (dict): {'product': 'Soporte', 'quantity': 2}
+Fila 4 (dict): {'product': 'Webcam', 'quantity': 6}
+```
+
+- **`type(venta).__name__` devuelve el nombre limpio del tipo:** en lugar de mostrar `<class 'dict'>`, extrae únicamente el texto `'dict'`, confirmando que cada elemento de `total_sales_by_product` es un diccionario independiente.
+- **Recorrido en una sola pasada:** el ciclo procesa las cuatro filas en orden de aparición y numera cada registro desde `1` gracias a `start=1`.
+
+<Callout type="risk">
+
+- **Colocar el `print()` fuera de la indentación del `for`:** si la línea del `print()` no tiene los cuatro espacios de sangría, el bucle correrá en silencio y solo se imprimirá la última fila (`Fila 4`) cuando el ciclo ya haya terminado.
+
+</Callout>
+
+<Callout type="mastery">
+
+Recorres listas de elementos y listas de diccionarios en Python usando `for` con nombres descriptivos en singular y plural, distingues que en colecciones compuestas la variable de iteración contiene un diccionario completo en cada vuelta y numeras el recorrido con `enumerate()` en lugar de construir índices manuales con `range(len())`.
+
+</Callout>
+
+## Resumen
+
+- El bucle `for elemento in lista:` entrega directamente el valor de cada posición, sin pasar por índices numéricos.
+- Al recorrer una lista de diccionarios como `total_sales_by_product`, la variable de iteración contiene un diccionario (`dict`) completo en cada vuelta.
+- Nombra la lista en plural (`ventas`) y la variable de iteración en singular (`venta`) para evitar sobrescribir la colección original.
+- Usa `for indice, elemento in enumerate(lista, start=1):` cuando necesites tanto la posición como el valor, evitando el patrón `range(len(lista))`.

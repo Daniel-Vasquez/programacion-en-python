@@ -1,0 +1,10 @@
+[
+  {
+    "id": "P1",
+    "slug": "python",
+    "title": "Programación en Python: Estructuras de Datos, Flujo y Matemáticas",
+    "description": "Domina el recorrido de colecciones, diccionarios acumuladores, condicionales y operaciones matemáticas en Python para resolver retos algorítmicos con fluidez.",
+    "plannedSections": 7,
+    "published": true
+  }
+]

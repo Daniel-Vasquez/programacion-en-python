@@ -1,0 +1,157 @@
+---
+sectionId: "P1.2"
+course: "P1"
+title: "Acceso a valores en un diccionario"
+order: 2
+minutes: 30
+summary: "Extraes los valores de un diccionario por su clave con corchetes, calculas subtotales y recorres una lista de ventas leyendo cada campo por separado."
+---
+
+En la sección P1.1 comprobaste que cada vuelta del bucle sobre una lista de ventas te entrega un diccionario completo. Sin embargo, para calcular importes o presentar un informe limpio no necesitas mostrar el diccionario entero con llaves y comillas, sino leer por separado el nombre del producto o la cantidad vendida. Un diccionario (`dict`) en Python es una estructura basada en tablas _hash_ que guarda pares de clave y valor (`key: value`) y permite extraer cualquier dato en tiempo constante `O(1)` usando corchetes. En esta sección vas a consultar valores individuales por su clave, a operarlos aritméticamente y a extraerlos dentro de un bucle `for`.
+
+**Lo que tendrás al terminar:** los _scripts_ `detalle_venta.py`, `reporte_ventas.py` y `desglose_productos.py`, ejecutados en la terminal con su salida real.
+
+**Requisitos:** haber completado la sección P1.1 y contar con Python 3.10 o superior.
+
+## Paso 1: extraer campos de un diccionario con corchetes
+
+Para obtener el valor asociado a una clave conocida, escribe el nombre del diccionario seguido de la clave exacta entre corchetes: `diccionario["clave"]`. Python calcula el _hash_ de esa clave y salta directamente al valor guardado en memoria en tiempo constante `O(1)`, sin importar si el diccionario tiene tres claves o un millón. Crea `detalle_venta.py`:
+
+```python
+# Archivo: detalle_venta.py
+# Extracción de valores individuales de un diccionario mediante corchetes
+
+venta = {
+    "product": "Monitor 27 pulgadas",
+    "quantity": 4,
+    "price": 250.00,
+}
+
+nombre_producto = venta["product"]
+cantidad_vendida = venta["quantity"]
+precio_unitario = venta["price"]
+
+subtotal = cantidad_vendida * precio_unitario
+print(f"Producto: {nombre_producto} | Cantidad: {cantidad_vendida} | Subtotal: ${subtotal}")
+```
+
+```bash
+python3 detalle_venta.py
+```
+
+```text
+Producto: Monitor 27 pulgadas | Cantidad: 4 | Subtotal: $1000.0
+```
+
+- **El valor extraído conserva su tipo original:** `venta["product"]` devuelve un texto (`str`), `venta["quantity"]` devuelve un entero (`int`) y `venta["price"]` devuelve un decimal (`float`), listos para multiplicarse entre sí.
+- **Esquemas de datos fijos y garantizados:** el acceso directo con corchetes `venta["clave"]` es la opción idónea cuando sabes con certeza que todas las transacciones traen siempre esas claves definidas.
+- **Fallo rápido (_fail-fast_):** si un registro llega corrupto o sin un campo obligatorio, pedirlo con corchetes detiene el programa en ese instante con un `KeyError`, alertando del problema de inmediato en lugar de continuar con datos incompletos.
+
+<Callout type="risk">
+
+- **Diferencias de mayúsculas o espacios en la clave (`KeyError`):** las claves de texto distinguen entre mayúsculas y minúsculas; escribir `venta["Product"]` o `venta["product "]` cuando la clave es `"product"` lanza `KeyError: 'Product'` porque Python las trata como claves completamente distintas.
+- **Pedir una posición numérica como si fuera una lista (`venta[0]`):** en un diccionario cuyas claves son cadenas de texto no existe la posición `0`; al escribir `venta[0]`, Python busca literalmente una clave llamada `0` y falla con `KeyError: 0`.
+
+</Callout>
+
+## Paso 2: combinar el bucle `for` con la extracción de claves
+
+En problemas reales como `total_sales_by_product`, no tienes un único diccionario suelto sino una lista de diccionarios. Al unir el recorrido con `for` de la sección P1.1 con la notación de corchetes, puedes extraer `"product"` y `"quantity"` de cada elemento en cada vuelta del ciclo. Crea `reporte_ventas.py`:
+
+```python
+# Archivo: reporte_ventas.py
+# Recorrido de una lista de diccionarios extrayendo las claves de cada elemento
+
+lista_ventas = [
+    {"product": "Laptop", "quantity": 2},
+    {"product": "Mouse", "quantity": 5},
+]
+
+for item in lista_ventas:
+    print(f"Se vendieron {item['quantity']} unidades de {item['product']}.")
+```
+
+```bash
+python3 reporte_ventas.py
+```
+
+```text
+Se vendieron 2 unidades de Laptop.
+Se vendieron 5 unidades de Mouse.
+```
+
+| Expresión          | Resultado sobre `item` | Qué ocurre                                          |
+| ------------------ | ---------------------- | --------------------------------------------------- |
+| `item["product"]`  | `"Laptop"`             | Devuelve el texto asociado a la clave `"product"`   |
+| `item["quantity"]` | `2`                    | Devuelve el entero asociado a la clave `"quantity"` |
+| `item["Product"]`  | `KeyError: 'Product'`  | Falla porque la inicial en mayúscula no coincide    |
+
+- **Lectura sobre la variable de iteración:** los corchetes se aplican sobre `item` (el diccionario de la vuelta actual), nunca sobre `lista_ventas`.
+- **Comillas alternadas dentro de una _f-string_:** si abres la cadena con comillas dobles (`f"..."`), usa comillas simples dentro de los corchetes (`item['product']`) para que Python no confunda la comilla de la clave con el cierre del texto.
+- **Variables intermedias para mayor claridad:** cuando vayas a usar el mismo campo varias veces dentro del bucle, guárdalo primero en una variable como `producto = item["product"]`.
+
+<Callout type="risk">
+
+- **Intentar extraer la clave sobre la lista completa (`lista_ventas["product"]`):** `lista_ventas` es una lista (`list`) y solo acepta índices enteros; pedirle una clave de texto lanza `TypeError: list indices must be integers or slices, not str`.
+- **Repetir el mismo tipo de comillas dentro de la _f-string_ (`f"{item["product"]}"` en versiones anteriores a Python 3.12):** en entornos con Python 3.10 o 3.11 provoca un `SyntaxError` inmediato; alternar comillas dobles por fuera y simples por dentro funciona en cualquier versión.
+
+</Callout>
+
+## Ejercicio práctico
+
+<Callout type="exercise">
+
+1. Crea el archivo `desglose_productos.py` con una lista llamada `total_sales_by_product` que contenga tres diccionarios: `"Teclado mecánico"` (cantidad `3`), `"Monitor 27 pulgadas"` (cantidad `2`) y `"Mouse inalámbrico"` (cantidad `7`).
+2. Recorre la lista con un bucle `for`, guarda en cada vuelta los valores de `"product"` y `"quantity"` en las variables `producto` y `cantidad`, y muestra por pantalla cada línea con el formato `Producto: <nombre> -> Unidades: <cantidad>`.
+
+</Callout>
+
+Solución. Crea `desglose_productos.py`:
+
+```python
+# Archivo: desglose_productos.py
+# Extracción de las claves "product" y "quantity" en total_sales_by_product
+
+total_sales_by_product = [
+    {"product": "Teclado mecánico", "quantity": 3},
+    {"product": "Monitor 27 pulgadas", "quantity": 2},
+    {"product": "Mouse inalámbrico", "quantity": 7},
+]
+
+for venta in total_sales_by_product:
+    producto = venta["product"]
+    cantidad = venta["quantity"]
+    print(f"Producto: {producto} -> Unidades: {cantidad}")
+```
+
+```bash
+python3 desglose_productos.py
+```
+
+```text
+Producto: Teclado mecánico -> Unidades: 3
+Producto: Monitor 27 pulgadas -> Unidades: 2
+Producto: Mouse inalámbrico -> Unidades: 7
+```
+
+- **Asignación a variables descriptivas (`producto` y `cantidad`):** separar la extracción en dos líneas al inicio del bucle deja el código listo para el siguiente paso del reto, donde necesitarás usar ambos valores para acumular las ventas.
+- **Acceso directo en `O(1)` por cada fila:** sin importar cuántos campos adicionales tuviera cada diccionario, pedir `venta["product"]` y `venta["quantity"]` extrae únicamente los dos valores necesarios.
+
+<Callout type="risk">
+
+- **Un diccionario con el nombre de clave mal escrito a mitad de la lista:** si el tercer diccionario tuviera `"prodcut"` en lugar de `"product"`, el programa imprimiría las dos primeras líneas y se detendría en la tercera con `KeyError: 'product'`.
+
+</Callout>
+
+<Callout type="mastery">
+
+Extraes valores de un diccionario usando su clave exacta entre corchetes (`diccionario["clave"]`), combinas el recorrido de una lista de diccionarios con la lectura de campos como `"product"` y `"quantity"` en variables limpias y previenes errores de tipo `KeyError` y `TypeError` al distinguir entre índices de lista y claves de diccionario.
+
+</Callout>
+
+## Resumen
+
+- Un diccionario almacena pares clave-valor y permite leer cualquier valor en tiempo constante `O(1)` con la sintaxis `diccionario["clave"]`.
+- Al recorrer una lista de diccionarios con `for venta in lista:`, los corchetes se aplican a la variable de iteración (`venta["product"]`), no a la lista.
+- Las claves distinguen entre mayúsculas, minúsculas y espacios; pedir una clave que no existe lanza la excepción `KeyError`.
+- Guardar `venta["product"]` y `venta["quantity"]` en variables al inicio del bucle mantiene las operaciones posteriores legibles y libres de errores de comillas.

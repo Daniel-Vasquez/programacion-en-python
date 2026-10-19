@@ -1,0 +1,182 @@
+@import "tailwindcss";
+@plugin "@tailwindcss/typography";
+@source not "../content";
+
+:root {
+  --bg: #f8fafc;
+  --fg: #0f172a;
+  --muted: #475569;
+  --surface: #eaedf2;
+  --surface-2: #e2e8f0;
+  --accent: #0d9488;
+  --accent-strong: #0f766e;
+  --danger: #f25c76;
+  --info: #0284c7;
+  --warning: #d97706;
+}
+
+[data-theme="dark"] {
+  --bg: #0d1117;
+  --fg: #e6edf3;
+  --muted: #9aa4b2;
+  --surface: #161b22;
+  --surface-2: #222a35;
+  --accent: #2dd4bf;
+  --accent-strong: #5eead4;
+  --danger: #f87191;
+  --info: #38bdf8;
+  --warning: #fbbf24;
+}
+
+@theme {
+  --font-serif: "Source Serif 4", Georgia, Cambria, "Times New Roman", Times, serif;
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+
+  --color-bg: var(--bg);
+  --color-fg: var(--fg);
+  --color-muted: var(--muted);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-accent: var(--accent);
+  --color-accent-strong: var(--accent-strong);
+  --color-danger: var(--danger);
+  --color-info: var(--info);
+  --color-warning: var(--warning);
+}
+
+html {
+  background-color: var(--bg);
+  color: var(--fg);
+  font-family: var(--font-sans);
+}
+
+/* Tipografía y estilos medidos de las lecciones (§3 de guia-maquetacion-cursos.md) */
+.prose {
+  --tw-prose-body: var(--fg);
+  --tw-prose-headings: var(--fg);
+  --tw-prose-bold: var(--fg);
+  --tw-prose-links: var(--accent-strong);
+  --tw-prose-bullets: var(--accent);
+  --tw-prose-counters: var(--accent-strong);
+  --tw-prose-th-borders: var(--surface-2);
+  --tw-prose-td-borders: var(--surface-2);
+  color: var(--fg);
+}
+
+.prose p {
+  font-size: 18px;
+  line-height: 32px;
+  margin-top: 24px;
+  margin-bottom: 24px;
+}
+
+.prose h2 {
+  font-size: 30px;
+  line-height: 40px;
+  font-weight: 600;
+  margin-top: 56px;
+  margin-bottom: 32px;
+  color: var(--fg);
+}
+
+.prose h3 {
+  font-size: 24px;
+  line-height: 36px;
+  font-weight: 600;
+  margin-top: 40px;
+  margin-bottom: 16px;
+  color: var(--fg);
+}
+
+.prose ul,
+.prose ol {
+  font-size: 18px;
+  line-height: 32px;
+}
+
+.prose li {
+  margin-top: 12px;
+  margin-bottom: 12px;
+}
+
+/* Código en línea (§3.2) */
+.prose :not(pre) > code {
+  font-family: var(--font-mono);
+  font-size: 16px;
+  font-weight: 500;
+  background-color: var(--surface);
+  color: var(--fg);
+  padding: 2.4px 5.6px;
+  border-radius: 6px;
+}
+
+.prose :not(pre) > code::before,
+.prose :not(pre) > code::after {
+  content: none !important;
+}
+
+/* Dentro de un Callout el fondo del código en línea es surface-2 (§3.2) */
+.prose .callout :not(pre) > code {
+  background-color: var(--surface-2);
+}
+
+/* Bloques de código Shiki (§3.3) */
+.prose pre {
+  font-family: var(--font-mono);
+  font-size: 15.75px;
+  line-height: 25.2px;
+  background-color: var(--surface) !important;
+  border: 1px solid var(--surface-2);
+  border-radius: 12px;
+  padding: 16px 20px;
+  margin-top: 24px;
+  margin-bottom: 24px;
+  overflow-x: auto;
+}
+
+.astro-code,
+.astro-code span {
+  color: var(--shiki-light, var(--fg));
+  background-color: transparent !important;
+}
+
+[data-theme="dark"] .astro-code,
+[data-theme="dark"] .astro-code span {
+  color: var(--shiki-dark, var(--fg));
+  background-color: transparent !important;
+}
+
+/* Tablas (§3.2) */
+.prose table {
+  font-size: 16px;
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.prose thead th {
+  font-weight: 600;
+  border-bottom: 1px solid var(--surface-2);
+  padding-top: 12px;
+  padding-bottom: 12px;
+}
+
+.prose tbody td {
+  border-bottom: 1px solid var(--surface-2);
+  padding-top: 12px;
+  padding-bottom: 12px;
+}
+
+/* Callout (§3.4): margen 32px arriba/abajo, 0 arriba si va justo debajo de un h2 */
+.callout {
+  margin-top: 32px;
+  margin-bottom: 32px;
+}
+
+.prose h2 + .callout {
+  margin-top: 0;
+}
+
+.callout > :last-child {
+  margin-bottom: 0;
+}
