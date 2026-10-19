@@ -1,0 +1,178 @@
+---
+sectionId: "P1.7"
+course: "P1"
+title: "Operadores aritméticos y conversión de tipos en Python"
+order: 7
+minutes: 35
+summary: "Calculas potencias y raíces cuadradas con el operador de potencia y el módulo math, y truncas decimales a enteros con int y math.isqrt."
+---
+
+En la sección P1.6 obtuviste la coordenada final `(x, y)` de la hormiga después de procesar todos sus movimientos. El último paso del reto consiste en calcular la distancia euclidiana en línea recta desde el origen `(0, 0)` hasta esa coordenada mediante el Teorema de Pitágoras y devolver únicamente su parte entera truncada. Para ello, Python ofrece el operador de potenciación `**`, las funciones `math.sqrt()` y `math.isqrt()` de su biblioteca estándar y la función nativa `int()`. En esta sección vas a comparar las tres formas de calcular raíces cuadradas y a escribir la solución completa del problema de las hormigas.
+
+**Lo que tendrás al terminar:** los _scripts_ `potencias_y_raices.py`, `truncar_vs_redondear.py` y `reto_hormiga.py`, ejecutados en la terminal con su salida real.
+
+**Requisitos:** haber completado las secciones P1.1 a P1.6, y contar con Python 3.10 o superior.
+
+## Paso 1: calcular potencias y raíces con `**`, `math.sqrt()` y `math.isqrt()`
+
+En Python, el operador `**` eleva el número de la izquierda a la potencia de la derecha: `x ** 2` calcula el cuadrado de `x` y `suma ** 0.5` calcula su raíz cuadrada usando un exponente fraccionario. Además, el módulo estándar `math` incluye `math.sqrt(n)` —que devuelve siempre un número decimal (`float`)— y `math.isqrt(n)` —que calcula directamente la raíz cuadrada entera truncada (`int`) sin pasar por decimales—. Crea `potencias_y_raices.py`:
+
+```python
+# Archivo: potencias_y_raices.py
+# Cálculo de suma de cuadrados y raíz cuadrada por tres métodos en Python
+
+import math
+
+x = 5
+y = 5
+
+# 1. Suma de los cuadrados de los catetos usando el operador de potencia (**)
+suma_cuadrados = (x**2) + (y**2)
+
+# 2. Alternativa A: Raíz cuadrada con exponente 0.5 y truncado con int()
+distancia_exp = int(suma_cuadrados**0.5)
+
+# 3. Alternativa B: Raíz cuadrada con math.sqrt() y truncado con int()
+distancia_float = math.sqrt(suma_cuadrados)
+distancia_sqrt = int(distancia_float)
+
+# 4. Alternativa C: Raíz cuadrada entera directa con math.isqrt()
+distancia_isqrt = math.isqrt(suma_cuadrados)
+
+print(f"Suma de cuadrados: {suma_cuadrados}")
+print(f"Distancia exacta (float): {distancia_float:.4f}")
+print(f"Distancia entera truncada (** 0.5): {distancia_exp}")
+print(f"Distancia entera truncada (math.sqrt + int): {distancia_sqrt}")
+print(f"Distancia entera truncada (math.isqrt): {distancia_isqrt}")
+```
+
+```bash
+python3 potencias_y_raices.py
+```
+
+```text
+Suma de cuadrados: 50
+Distancia exacta (float): 7.0711
+Distancia entera truncada (** 0.5): 7
+Distancia entera truncada (math.sqrt + int): 7
+Distancia entera truncada (math.isqrt): 7
+```
+
+| Método          | Tipo que devuelve | Cuándo elegirlo                                  |
+| --------------- | ----------------- | ------------------------------------------------ |
+| `math.isqrt(n)` | `int`             | Cuando el problema pide la raíz entera truncada  |
+| `math.sqrt(n)`  | `float`           | Cuando necesitas conservar los decimales exactos |
+| `int(n ** 0.5)` | `int`             | Cuando no quieres importar ningún módulo externo |
+
+- **`math.isqrt()` evita pasar por números decimales:** opera íntegramente con aritmética entera, por lo que no sufre errores de redondeo en números gigantescos y ya entrega el tipo `int` listo para devolver.
+- **`math.sqrt()` para cálculos continuos:** si el resultado se va a usar en fórmulas físicas o estadísticas donde importan los decimales (`7.071067...`), `math.sqrt()` expresa la intención matemática con mayor claridad que `** 0.5`.
+
+<Callout type="risk">
+
+- **Usar `^` en lugar de `**` para elevar al cuadrado (`x ^ 2`):** en Python el símbolo `^`no es potencia sino el operador binario _XOR_ bit a bit; evaluar`5 ^ 2`devuelve`7`en lugar de`25` sin lanzar ningún error de sintaxis.
+- **Olvidar los paréntesis al elevar la suma a `0.5` (`x**2 + y**2 ** 0.5`):** como la potencia `**`tiene mayor prioridad que la suma`+`, sin paréntesis alrededor de `(x**2 + y**2)`solo se le saca raíz cuadrada a`y**2`.
+
+</Callout>
+
+## Paso 2: distinguir entre truncar con `int()` y redondear con `round()`
+
+Cuando un reto algorítmico pide "la parte entera de la distancia", significa **truncar** (cortar y descartar todo lo que va después del punto decimal), no redondear al entero más cercano. Para un valor como `5.6569`, truncar con `int()` o `math.isqrt()` entrega `5`, mientras que `round()` sube el número a `6`. Crea `truncar_vs_redondear.py`:
+
+```python
+# Archivo: truncar_vs_redondear.py
+# Diferencia entre truncar decimales con int() / math.isqrt() y redondear con round()
+
+import math
+
+suma = (4**2) + (4**2)  # 32
+raiz = math.sqrt(suma)  # 5.656854249492381
+
+print(f"Raíz con decimales: {raiz:.4f}")
+print(f"Truncado con int(): {int(raiz)}")
+print(f"Truncado con math.isqrt(): {math.isqrt(suma)}")
+print(f"Redondeado con round(): {round(raiz)}")
+```
+
+```bash
+python3 truncar_vs_redondear.py
+```
+
+```text
+Raíz con decimales: 5.6569
+Truncado con int(): 5
+Truncado con math.isqrt(): 5
+Redondeado con round(): 6
+```
+
+- **`int(5.6569)` elimina los decimales sin redondear:** aunque `.6569` supere `.5`, `int()` corta la fracción hacia cero y devuelve `5`.
+- **`math.isqrt(32)` coincide siempre con `int(math.sqrt(32))`:** busca el mayor entero cuyo cuadrado no supere a `32` (`5**2 = 25`, porque `6**2 = 36` ya se pasa).
+
+<Callout type="risk">
+
+- **Usar `round()` cuando el problema pide truncar:** en cualquier distancia cuya parte decimal sea `.5` o mayor (como `5.6569`), `round()` devolverá una unidad de más (`6` en vez de `5`) y hará fallar las pruebas automáticas.
+- **Pasarle un `float` a `math.isqrt()` (`math.isqrt(32.0)`):** `math.isqrt()` solo acepta números enteros; si le pasas el resultado de una división `/` o un decimal con `.0`, lanza `TypeError: 'float' object cannot be interpreted as an integer`.
+
+</Callout>
+
+## Ejercicio práctico
+
+<Callout type="exercise">
+
+1. Crea el archivo `reto_hormiga.py` con la función `calcular_distancia_hormiga(steps)` que reciba la lista de movimientos (`0`, `1`, `2`, `3`), calcule las coordenadas finales `x` e `y` usando `.count()` y devuelva la distancia euclidiana entera truncada mediante `math.isqrt()`.
+2. Prueba la función con dos recorridos: `ruta_exacta = [0, 0, 0, 2, 2, 2, 2]` (que termina en `(4, 3)`) y `ruta_diagonal = [0, 0, 2, 0, 3, 2, 2, 1, 0, 2]` (que termina en `(3, 3)`), e imprime ambas distancias.
+
+</Callout>
+
+Solución. Crea `reto_hormiga.py`:
+
+```python
+# Archivo: reto_hormiga.py
+# Solución completa al reto de la distancia de la hormiga desde el origen
+
+import math
+
+
+def calcular_distancia_hormiga(steps):
+    y = steps.count(0) - steps.count(1)
+    x = steps.count(2) - steps.count(3)
+    return math.isqrt((x**2) + (y**2))
+
+
+ruta_exacta = [0, 0, 0, 2, 2, 2, 2]
+ruta_diagonal = [0, 0, 2, 0, 3, 2, 2, 1, 0, 2]
+
+print("Distancia ruta (4, 3):", calcular_distancia_hormiga(ruta_exacta))
+print("Distancia ruta (3, 3):", calcular_distancia_hormiga(ruta_diagonal))
+```
+
+```bash
+python3 reto_hormiga.py
+```
+
+```text
+Distancia ruta (4, 3): 5
+Distancia ruta (3, 3): 4
+```
+
+- **Triángulo rectángulo `3-4-5` en `ruta_exacta`:** con `x = 4` e `y = 3`, la suma de cuadrados es `16 + 9 = 25` y su raíz cuadrada exacta es `5`.
+- **Raíz truncada en `ruta_diagonal`:** con `x = 3` e `y = 3`, la suma de cuadrados es `9 + 9 = 18`; su raíz real es `4.2426...` y `math.isqrt(18)` devuelve directamente el entero truncado `4`.
+- **Solución completa en tres líneas:** combinar `.count()` de la sección P1.6 con `math.isqrt()` resuelve todo el problema sin bucles explícitos ni conversiones adicionales.
+
+<Callout type="risk">
+
+- **Escribir un número negativo literal al cuadrado sin paréntesis (`-3 ** 2`):** al probar en consola, `-3 ** 2`evalúa primero`3 ** 2`y luego aplica el signo menos, dando`-9`; cuando el valor está dentro de una variable (`x = -3`), `x \*\* 2`sí eleva el número con todo y signo y devuelve`9`.
+
+</Callout>
+
+<Callout type="mastery">
+
+Calculas potencias con `**` y raíces cuadradas con `** 0.5`, `math.sqrt()` y `math.isqrt()`, distingues entre truncar con `int()` y redondear con `round()`, y resuelves de principio a fin el cálculo de distancia euclidiana entera desde el origen a partir de una lista de movimientos.
+
+</Callout>
+
+## Resumen
+
+- El operador `**` calcula potencias en Python: `x ** 2` eleva al cuadrado y `(x**2 + y**2) ** 0.5` calcula la raíz cuadrada.
+- `math.sqrt(n)` devuelve la raíz cuadrada como `float`, mientras que `math.isqrt(n)` devuelve directamente la raíz cuadrada entera truncada como `int`.
+- `int(x)` trunca la parte decimal hacia cero sin redondear; `round(x)` redondea al entero más cercano.
+- Combinar `steps.count()` con `math.isqrt((x**2) + (y**2))` resuelve el reto de la distancia de las hormigas en tres líneas.
